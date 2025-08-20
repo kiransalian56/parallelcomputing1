@@ -1,0 +1,73 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <omp.h>  // Include OpenMP header
+
+// Parallel Bubble Sort using odd-even transposition sort
+void parallelBubbleSort(int arr[], int n) {
+    int i, temp, phase;
+
+    for (phase = 0; phase < n; phase++) {
+        if (phase % 2 == 0) {
+            // Even phase
+            #pragma omp parallel for private(i, temp) shared(arr, n)
+            for (i = 0; i < n - 1; i += 2) {
+                if (arr[i] > arr[i + 1]) {
+                    temp = arr[i];
+                    arr[i] = arr[i + 1];
+                    arr[i + 1] = temp;
+                }
+            }
+        } else {
+            // Odd phase
+            #pragma omp parallel for private(i, temp) shared(arr, n)
+            for (i = 1; i < n - 1; i += 2) {
+                if (arr[i] > arr[i + 1]) {
+                    temp = arr[i];
+                    arr[i] = arr[i + 1];
+                    arr[i + 1] = temp;
+                }
+            }
+        }
+    }
+}
+
+int main() {
+    int n, i;
+    double start, end;
+
+    printf("Enter the number of elements: ");
+    scanf("%d", &n);
+
+    int *arr = (int*)malloc(n * sizeof(int));
+
+    if (arr == NULL) {
+        printf("Memory allocation failed.\n");
+        return 1;
+    }
+
+    printf("Enter %d integers:\n", n);
+    for (i = 0; i < n; i++) {
+        scanf("%d", &arr[i]);
+    }
+
+    // Start time
+    start = omp_get_wtime();
+
+    // Perform parallel sorting
+    parallelBubbleSort(arr, n);
+
+    // End time
+    end = omp_get_wtime();
+
+    printf("Sorted array:\n");
+    for (i = 0; i < n; i++) {
+        printf("%d ", arr[i]);
+    }
+
+    printf("\nExecution time: %f seconds\n", end - start);
+
+    // Free allocated memory
+    free(arr);
+
+    return 0;
+}
